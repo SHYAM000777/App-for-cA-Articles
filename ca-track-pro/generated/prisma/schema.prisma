@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      Role     @default(ARTICLE)
+  tasks     Task[]   @relation("UserTasks")
+  skills    Skill[]  @relation("UserSkills")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  notes     String?
+  tasks     Task[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus @default(TODO)
+  dueDate     DateTime?
+  assignee    User?      @relation("UserTasks", fields: [assigneeId], references: [id])
+  assigneeId  String?
+  client      Client?    @relation(fields: [clientId], references: [id])
+  clientId    String?
+  skills      Skill[]    @relation("TaskSkills")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Skill {
+  id    String     @id @default(cuid())
+  name  String
+  level SkillLevel @default(BASIC)
+  users User[]     @relation("UserSkills")
+  tasks Task[]     @relation("TaskSkills")
+}
+
+enum Role {
+  ADMIN
+  MENTOR
+  ARTICLE
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum SkillLevel {
+  BASIC
+  INTERMEDIATE
+  EXPERIENCED
+}
